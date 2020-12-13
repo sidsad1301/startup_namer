@@ -9,6 +9,9 @@ class MyApp extends StatelessWidget {
   //  final wordPair = WordPair.random();
     return MaterialApp(
       title: 'StartUp name generator entete',
+      theme: ThemeData(          // Add the 3 lines from here...
+        primaryColor: Colors.greenAccent,
+      ),
       home: RandomWords(),
     );
   }
@@ -23,8 +26,9 @@ class _RandomWordsState extends State<RandomWords> {
 
   final List<WordPair> _suggestions = <WordPair>[];
   final TextStyle _biggerFont = const TextStyle(fontSize: 18);
+  final _saved = Set<WordPair>();
 
-  Widget _buildSuggestions() {
+Widget _buildSuggestions() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
         // The itemBuilder callback is called once per suggested
@@ -59,26 +63,74 @@ class _RandomWordsState extends State<RandomWords> {
   }
 
   Widget _buildRow(WordPair pair) {
+    final alreadySaved = _saved.contains(pair);
     return ListTile(
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
+      trailing: Icon(   // NEW from here...
+        alreadySaved ? Icons.favorite : Icons.favorite_border,
+        color: alreadySaved ? Colors.red : null,
+      ),
+      onTap: () {      // NEW lines from here...
+        setState(() {
+          if (alreadySaved) {
+            _saved.remove(pair);
+          } else {
+            _saved.add(pair);
+          }
+        });
+      },
     );
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
-  //  final wordPair = WordPair.random();
-   // return Text(wordPair.asPascalCase);
-    return Scaffold (                     // Add from here...
+    return Scaffold(
       appBar: AppBar(
-        title: Text('Startup Name Generator bar'),
+        title: Text('Startup Name bar'),
+        actions: [
+          IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+        ],
       ),
       body: _buildSuggestions(),
     );
   }
+  void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        // NEW lines from here...
+        builder: (BuildContext context) {
+          final tiles = _saved.map(
+                (WordPair pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase,
+                  style: _biggerFont,
+                ),
+              );
+            },
+          );
+          final divided = ListTile.divideTiles(
+            context: context,
+            tiles: tiles,
+          ).toList();
+
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Saved Suggestions'),
+            ),
+            body: ListView(children: divided),
+          );
+        }, // ...to here.
+      ),
+    );
+  }
+
 }
+
+
 
 
 
